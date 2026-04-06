@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Basic and Population Genetics Quiz</title>
+<style>
+:root{
+  --bg:#0f172a; --panel:#111827; --card:#1f2937; --muted:#94a3b8; --text:#e5e7eb;
+  --accent:#38bdf8; --accent2:#22c55e; --wrong:#ef4444; --border:#334155; --chip:#0b1220;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:linear-gradient(180deg,#020617,#0f172a 35%,#111827);color:var(--text)}
+.container{max-width:1100px;margin:0 auto;padding:24px}
+.hero{background:rgba(15,23,42,.75);border:1px solid var(--border);border-radius:24px;padding:24px 24px 18px;backdrop-filter: blur(10px);position:sticky;top:0;z-index:5}
+h1{margin:0 0 8px;font-size:clamp(28px,4vw,42px)}
+.sub{color:var(--muted);margin:0 0 16px;line-height:1.6}
+.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+button, .btn{
+  border:none;background:var(--accent);color:#00111a;padding:12px 16px;border-radius:14px;
+  font-weight:700;cursor:pointer;transition:.2s transform,.2s opacity,.2s background;
+}
+button:hover,.btn:hover{transform:translateY(-1px);opacity:.95}
+button.secondary{background:#1e293b;color:var(--text);border:1px solid var(--border)}
+button.success{background:var(--accent2);color:#03140a}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 0}
+.tab{background:var(--chip);color:var(--text);border:1px solid var(--border)}
+.tab.active{background:var(--accent);color:#00111a}
+.quiz-panel{display:none;margin-top:18px}
+.quiz-panel.active{display:block}
+.quiz-card{background:rgba(17,24,39,.9);border:1px solid var(--border);border-radius:22px;padding:20px;margin-top:18px}
+.quiz-title{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.badge{padding:8px 12px;background:#0b1220;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:14px}
+.question{background:rgba(31,41,55,.65);border:1px solid var(--border);border-radius:18px;padding:16px;margin:16px 0}
+.q-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.q-num{color:var(--accent);font-weight:800}
+.opts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+.opt{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);
+  border-radius:14px;background:#0b1220;cursor:pointer;user-select:none
+}
+.opt:hover{border-color:#475569}
+.opt input{display:none}
+.dot{width:18px;height:18px;border-radius:50%;border:2px solid #64748b;flex:0 0 18px}
+.opt.selected{border-color:var(--accent);background:rgba(56,189,248,.12)}
+.opt.selected .dot{border-color:var(--accent);background:radial-gradient(circle at center,var(--accent) 0 45%,transparent 46%)}
+.opt.correct{border-color:var(--accent2);background:rgba(34,197,94,.12)}
+.opt.wrong{border-color:var(--wrong);background:rgba(239,68,68,.12)}
+.answer-note{display:none;margin-top:12px;font-size:14px;color:var(--muted)}
+.question.revealed .answer-note{display:block}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.result{margin-top:16px;padding:14px 16px;border-radius:16px;background:#0b1220;border:1px solid var(--border);display:none}
+.result.show{display:block}
+.footer-note{color:var(--muted);margin-top:20px;font-size:14px}
+@media (max-width:680px){
+  .container{padding:14px}
+  .hero{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>Basic and Population Genetics Quiz</h1>
+    <p class="sub">Interactive practice site with 4 tabs, 80 questions, instant selection, score calculation, reveal answers, and reset. Built from your four quiz sets.</p>
+    <div class="topbar">
+      <button class="success" onclick="submitCurrentQuiz()">Submit Current Tab</button>
+      <button class="secondary" onclick="revealCurrentQuiz()">Reveal Answers</button>
+      <button class="secondary" onclick="resetCurrentQuiz()">Reset Current Tab</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+  <div id="quizRoot"></div>
+  <p class="footer-note">Tip: open the HTML file in Safari or Chrome on mobile, and it will work like a mini quiz site.</p>
+</div>
+<script>
+const quizData = 
+{"Quiz 1 – Overview of Genetics": [{"q": "Proteome refers to:", "options": ["All DNA", "All RNA", "All proteins in a cell", "All lipids"], "answer": 2}, {"q": "Nucleotides are building blocks of:", "options": ["Proteins", "DNA", "Lipids", "Carbohydrates"], "answer": 1}, {"q": "Chromosomes are made of:", "options": ["RNA only", "DNA and proteins", "Lipids", "Carbohydrates"], "answer": 1}, {"q": "A codon consists of:", "options": ["2 bases", "3 bases", "4 bases", "5 bases"], "answer": 1}, {"q": "GFP stands for:", "options": ["Green fluorescent protein", "Genetic functional protein", "Global fluorescence protein", "General function protein"], "answer": 0}, {"q": "Genetic information is stored in:", "options": ["Proteins", "DNA sequence", "Lipids", "Carbohydrates"], "answer": 1}, {"q": "Polypeptides fold into:", "options": ["DNA", "3D structures", "RNA", "Lipids"], "answer": 1}, {"q": "Proteins are considered:", "options": ["Energy sources", "Workhorses of cells", "Waste products", "Genetic material"], "answer": 1}, {"q": "The Human Genome Project was published in:", "options": ["1997", "2000", "2003", "2010"], "answer": 2}, {"q": "DNA stores information for:", "options": ["Lipid synthesis", "Protein synthesis", "Carbohydrate synthesis", "Energy production"], "answer": 1}, {"q": "Genes are segments of:", "options": ["RNA", "Protein", "DNA", "Lipids"], "answer": 2}, {"q": "DNA is located in:", "options": ["Cytoplasm only", "Nucleus", "Membrane", "Ribosome"], "answer": 1}, {"q": "Dolly the sheep was cloned in:", "options": ["1995", "1997", "2000", "2005"], "answer": 1}, {"q": "Human genome contains approximately:", "options": ["3 million base pairs", "3 billion base pairs", "300 base pairs", "30 billion base pairs"], "answer": 1}, {"q": "Chromosomes are found in:", "options": ["Nucleus", "Membrane", "Cytoplasm", "Ribosome"], "answer": 0}, {"q": "Genetic code is based on:", "options": ["Double bases", "Triple bases", "Single bases", "Quadruple bases"], "answer": 1}, {"q": "Genetics is the study of:", "options": ["Cells", "Heredity and variation", "Proteins", "Enzymes"], "answer": 1}, {"q": "Human cells contain:", "options": ["23 chromosomes", "46 chromosomes", "48 chromosomes", "44 chromosomes"], "answer": 1}, {"q": "DNA is a:", "options": ["Monomer", "Polymer", "Protein", "Enzyme"], "answer": 1}, {"q": "The nitrogenous base not in DNA is:", "options": ["Adenine", "Uracil", "Cytosine", "Guanine"], "answer": 1}], "Quiz 2 – Darwinian View of Life": [{"q": "Birds lay eggs because:", "options": ["Random", "Common trait", "Mutation", "Energy"], "answer": 1}, {"q": "Ligers are a cross between:", "options": ["Lion and leopard", "Lion and tiger", "Tiger and cheetah", "Cat and lion"], "answer": 1}, {"q": "Homologous structures indicate:", "options": ["No relation", "Common ancestry", "Different origins", "Mutation"], "answer": 1}, {"q": "Biogeography studies:", "options": ["Cells", "Species distribution", "Proteins", "DNA"], "answer": 1}, {"q": "Homologous limbs share:", "options": ["Function only", "Structure", "Color", "Size"], "answer": 1}, {"q": "Natural selection leads to:", "options": ["Extinction only", "Adaptation", "No change", "Mutation only"], "answer": 1}, {"q": "Evolution results in:", "options": ["Static life", "Change over generations", "No change", "Instant change"], "answer": 1}, {"q": "Embryology studies:", "options": ["Adult forms", "Development stages", "DNA only", "Proteins"], "answer": 1}, {"q": "Differential survival means:", "options": ["All survive equally", "Some survive better", "None survive", "Random survival"], "answer": 1}, {"q": "Fossils provide evidence for:", "options": ["Weather", "Evolution", "Energy", "Proteins"], "answer": 1}, {"q": "Example of vestigial structure:", "options": ["Heart", "Appendix", "Brain", "Lungs"], "answer": 1}, {"q": "Molecular homology refers to:", "options": ["Cell size", "DNA similarity", "Organ size", "Shape"], "answer": 1}, {"q": "Natural selection was proposed by:", "options": ["Mendel", "Darwin", "Watson", "Crick"], "answer": 1}, {"q": "Inheritance means:", "options": ["Traits disappear", "Traits passed to offspring", "Traits change randomly", "Traits lost"], "answer": 1}, {"q": "Adaptation refers to:", "options": ["Harmful traits", "Beneficial traits", "Neutral traits", "Random traits"], "answer": 1}, {"q": "Variation in a population means:", "options": ["All identical", "Differences among individuals", "Same traits", "No traits"], "answer": 1}, {"q": "DNA similarities indicate:", "options": ["No relation", "Close relationship", "Mutation only", "Energy"], "answer": 1}, {"q": "Evolution is the study of:", "options": ["Cells", "Change over time in populations", "Proteins", "Energy"], "answer": 1}, {"q": "Theory of evolution can:", "options": ["Not change", "Be modified with evidence", "Be ignored", "Be proven wrong always"], "answer": 1}, {"q": "Vestigial structures are:", "options": ["Functional organs", "Remnants with little function", "New organs", "Proteins"], "answer": 1}], "Quiz 3 – Genetic Variation": [{"q": "Adaptation depends on:", "options": ["Random only", "Genetic variation", "Protein only", "Cells"], "answer": 1}, {"q": "Population genetics studies:", "options": ["Cells", "Genes in populations", "Organs", "Proteins"], "answer": 1}, {"q": "Alleles are:", "options": ["Proteins", "Gene variants", "Cells", "Organs"], "answer": 1}, {"q": "Gene flow is:", "options": ["Mutation", "Movement of alleles", "Replication", "Translation"], "answer": 1}, {"q": "Chromosome variations affect:", "options": ["One gene only", "Many genes", "No genes", "Proteins"], "answer": 1}, {"q": "Genetics is the study of:", "options": ["Energy", "Heredity", "Cells", "Proteins"], "answer": 1}, {"q": "Genetic variation refers to:", "options": ["Same traits", "Differences in genes", "Energy", "Proteins"], "answer": 1}, {"q": "Chromosomes are arranged by:", "options": ["Color", "Size", "Function", "Age"], "answer": 1}, {"q": "Mendel studied inheritance using:", "options": ["Microscopes", "Crosses", "DNA sequencing", "Cloning"], "answer": 1}, {"q": "Gene pool is:", "options": ["One gene", "All alleles in population", "DNA only", "Proteins"], "answer": 1}, {"q": "Phenotype is:", "options": ["DNA sequence", "Observable trait", "Gene", "Protein"], "answer": 1}, {"q": "Karyotype is:", "options": ["DNA sequence", "Chromosome arrangement", "Protein", "Cell"], "answer": 1}, {"q": "Genotype is:", "options": ["Physical trait", "Genetic makeup", "Protein", "DNA only"], "answer": 1}, {"q": "Cytogeneticist studies:", "options": ["Proteins", "Chromosomes", "Lipids", "Cells"], "answer": 1}, {"q": "Gregor Mendel is known for:", "options": ["Evolution", "Genetics", "Ecology", "Anatomy"], "answer": 1}, {"q": "Allele frequency formula uses:", "options": ["Cells", "Alleles", "Proteins", "Organs"], "answer": 1}, {"q": "Polymorphism means:", "options": ["One allele", "Multiple variants", "No variation", "Mutation"], "answer": 1}, {"q": "Population is:", "options": ["Single cell", "Group of same species", "Organ", "Protein"], "answer": 1}, {"q": "Centromere in middle is:", "options": ["Acrocentric", "Metacentric", "Telocentric", "Submetacentric"], "answer": 1}, {"q": "AA individuals contribute:", "options": ["1 allele", "2 alleles", "0 alleles", "3 alleles"], "answer": 1}], "Quiz 4 – Population Genetics": [{"q": "Hardy-Weinberg equation is:", "options": ["p+q", "p²+2pq+q²=1", "p-q", "pq=1"], "answer": 1}, {"q": "Genotype frequencies depend on:", "options": ["p and q", "Cells", "Proteins", "DNA"], "answer": 0}, {"q": "Random mating means:", "options": ["Selective mating", "No preference", "Similar mating", "Different mating"], "answer": 1}, {"q": "Allele frequency is:", "options": ["Number of individuals", "Proportion of alleles", "Number of genes", "Protein count"], "answer": 1}, {"q": "Allele frequencies remain:", "options": ["Changing", "Constant", "Random", "Unknown"], "answer": 1}, {"q": "If p=0.8 → q=", "options": ["0.2", "0.8", "0.1", "0.5"], "answer": 0}, {"q": "p² represents:", "options": ["Heterozygous", "Homozygous dominant", "Recessive", "Mutation"], "answer": 1}, {"q": "Genetic equilibrium means:", "options": ["Change", "Constant frequencies", "Mutation", "Selection"], "answer": 1}, {"q": "q represents:", "options": ["Gene", "Allele frequency", "Protein", "Trait"], "answer": 1}, {"q": "Sum of p + q =", "options": ["0", "1", "2", "10"], "answer": 1}, {"q": "If p=0.7 → q=", "options": ["0.2", "0.3", "0.4", "0.7"], "answer": 1}, {"q": "HW assumes:", "options": ["Non-random mating", "Random mating", "Mutation", "Selection"], "answer": 1}, {"q": "Hardy-Weinberg applies to:", "options": ["Evolving population", "Non-evolving population", "Small population", "Mutating population"], "answer": 1}, {"q": "Mutation causes:", "options": ["Equilibrium", "Evolution", "No change", "Stability"], "answer": 1}, {"q": "Homozygous individuals have:", "options": ["One allele", "Two identical alleles", "Three alleles", "No alleles"], "answer": 1}, {"q": "Total alleles = individuals ×", "options": ["1", "2", "3", "4"], "answer": 1}, {"q": "p represents:", "options": ["Genotype", "Allele frequency", "Trait", "Cell"], "answer": 1}, {"q": "q² represents:", "options": ["Dominant", "Homozygous recessive", "Heterozygous", "Allele"], "answer": 1}, {"q": "2pq represents:", "options": ["Homozygous", "Heterozygous", "Mutation", "Allele"], "answer": 1}, {"q": "Heterozygous individuals have:", "options": ["Same alleles", "Different alleles", "One allele", "No alleles"], "answer": 1}]}
+;
+
+const tabsEl = document.getElementById('tabs');
+const root = document.getElementById('quizRoot');
+let currentQuiz = Object.keys(quizData)[0];
+
+function createUI(){
+  Object.keys(quizData).forEach((title,idx)=>{
+    const tab = document.createElement('button');
+    tab.className = 'tab' + (idx===0 ? ' active' : '');
+    tab.textContent = title;
+    tab.onclick = ()=>switchQuiz(title);
+    tabsEl.appendChild(tab);
+
+    const panel = document.createElement('section');
+    panel.className = 'quiz-panel' + (idx===0 ? ' active' : '');
+    panel.id = slug(title);
+
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+
+    const header = document.createElement('div');
+    header.className = 'quiz-title';
+    header.innerHTML = `<div><h2 style="margin:0">${title}</h2><div class="badge">${quizData[title].length} Questions</div></div>
+                        <div class="badge" id="${slug(title)}-progress">0 answered</div>`;
+    card.appendChild(header);
+
+    quizData[title].forEach((item,i)=>{
+      const q = document.createElement('div');
+      q.className = 'question';
+      q.dataset.answer = item.answer;
+      q.dataset.index = i;
+
+      const optsHtml = item.options.map((opt,oi)=>`
+        <label class="opt" data-option="${oi}">
+          <span class="dot"></span>
+          <input type="radio" name="${slug(title)}-q${i}" value="${oi}">
+          <span>${escapeHtml(opt)}</span>
+        </label>
+      `).join('');
+
+      q.innerHTML = `
+        <div class="q-head">
+          <div><span class="q-num">Q${i+1}</span></div>
+        </div>
+        <div style="margin-top:8px;font-weight:600;line-height:1.6">${escapeHtml(item.q)}</div>
+        <div class="opts">${optsHtml}</div>
+        <div class="answer-note">Correct answer: <strong>${escapeHtml(item.options[item.answer])}</strong></div>
+      `;
+      card.appendChild(q);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    actions.innerHTML = `
+      <button class="success" onclick="submitQuiz('${title.replace(/'/g,"\\'")}')">Submit ${title}</button>
+      <button class="secondary" onclick="revealQuiz('${title.replace(/'/g,"\\'")}')">Reveal Answers</button>
+      <button class="secondary" onclick="resetQuiz('${title.replace(/'/g,"\\'")}')">Reset</button>
+    `;
+    card.appendChild(actions);
+
+    const result = document.createElement('div');
+    result.className = 'result';
+    result.id = `${slug(title)}-result`;
+    card.appendChild(result);
+
+    panel.appendChild(card);
+    root.appendChild(panel);
+  });
+
+  document.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      const wrapper = opt.closest('.question');
+      wrapper.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+      opt.querySelector('input').checked = true;
+      updateProgress();
+    });
+  });
+
+  updateProgress();
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-'); }
+
+function switchQuiz(title){
+  currentQuiz = title;
+  [...tabsEl.children].forEach(btn=>{
+    btn.classList.toggle('active', btn.textContent===title);
+  });
+  document.querySelectorAll('.quiz-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(slug(title)).classList.add('active');
+}
+
+function getPanel(title){ return document.getElementById(slug(title)); }
+
+function updateProgress(){
+  Object.keys(quizData).forEach(title=>{
+    const panel = getPanel(title);
+    const total = quizData[title].length;
+    const answered = panel.querySelectorAll('.question input:checked').length;
+    document.getElementById(`${slug(title)}-progress`).textContent = `${answered} / ${total} answered`;
+  });
+}
+
+function submitQuiz(title){
+  const panel = getPanel(title);
+  const questions = [...panel.querySelectorAll('.question')];
+  let score = 0;
+
+  questions.forEach(q=>{
+    q.classList.remove('revealed');
+    q.querySelectorAll('.opt').forEach(o=>o.classList.remove('correct','wrong'));
+    const answer = +q.dataset.answer;
+    const checked = q.querySelector('input:checked');
+    if(!checked) return;
+    const chosen = +checked.value;
+    const chosenOpt = q.querySelector(`.opt[data-option="${chosen}"]`);
+    const correctOpt = q.querySelector(`.opt[data-option="${answer}"]`);
+    if(chosen === answer){
+      score++;
+      chosenOpt.classList.add('correct');
+    } else {
+      chosenOpt.classList.add('wrong');
+      correctOpt.classList.add('correct');
+    }
+  });
+
+  const result = document.getElementById(`${slug(title)}-result`);
+  result.className = 'result show';
+  result.innerHTML = `<strong>Score:</strong> ${score} / ${questions.length} &nbsp;|&nbsp; <strong>${Math.round(score/questions.length*100)}%</strong>`;
+}
+
+function revealQuiz(title){
+  const panel = getPanel(title);
+  panel.querySelectorAll('.question').forEach(q=>{
+    q.classList.add('revealed');
+    const answer = +q.dataset.answer;
+    q.querySelectorAll('.opt').forEach(o=>o.classList.remove('correct','wrong'));
+    const correctOpt = q.querySelector(`.opt[data-option="${answer}"]`);
+    correctOpt.classList.add('correct');
+    const checked = q.querySelector('input:checked');
+    if(checked && +checked.value !== answer){
+      q.querySelector(`.opt[data-option="${checked.value}"]`).classList.add('wrong');
+    }
+  });
+}
+
+function resetQuiz(title){
+  const panel = getPanel(title);
+  panel.querySelectorAll('.question').forEach(q=>{
+    q.classList.remove('revealed');
+    q.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected','correct','wrong'));
+    q.querySelectorAll('input').forEach(i=>i.checked=false);
+  });
+  const result = document.getElementById(`${slug(title)}-result`);
+  result.className = 'result';
+  result.innerHTML = '';
+  updateProgress();
+}
+function submitCurrentQuiz(){ submitQuiz(currentQuiz); }
+function revealCurrentQuiz(){ revealQuiz(currentQuiz); }
+function resetCurrentQuiz(){ resetQuiz(currentQuiz); }
+
+createUI();
+</script>
+</body>
+</html>
